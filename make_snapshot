@@ -1,0 +1,56 @@
+#!/bin/bash
+# make_snapshot_frequent
+# David Cook, 2016
+#
+# Make snapshots of your ZFS datasets using the format
+# [POOL]/[DATASET]@zfs-auto-snap_[freq]_YYYY-MM-DD:HH-MM-SS
+#
+
+# Check if I got a cmd line parm
+if [ ${#2} -eq 0 ]; then
+   echo "Usage: ${0} [zfs Pool name] [zfs dataset name]"
+   echo ""
+   echo "No Pool/dataset provided. Exiting ..."
+   logger `basename $0` - ERROR: No Pool/dataset supplied
+   exit 99
+fi
+
+#
+# Assign Pool
+ZPOOL=$1
+
+#
+# Check if the ZPool exists
+pools=$(zpool status | grep pool | awk -F ": " '{print $2}')
+found_pool=$(echo $pools | grep $1 | wc -l)
+if [ $found_pool -eq 0 ]; then
+   echo "Pool $1 not found. Exiting..."
+   logger `basename $0` - ERROR: Pool not present
+   exit 99
+fi
+
+
+#
+# Set which type of snapshot to create
+qualifier=""
+[ "$2" == "" ]      && qualifier="frequent"
+[ "$2" == "freq" ]  && qualifier="frequent"
+[ "$2" == "hour" ]  && qualifier="hourly"
+[ "$2" == "day" ]   && qualifier="daily"
+[ "$2" == "week" ]  && qualifier="weekly"
+[ "$2" == "month" ] && qualifier="monthly"
+[ "$2" == "year" ]  && qualifier="annual"
+
+# Log intentions
+logger `basename $0` - $qualifier:start
+
+# Create snapshot
+/sbin/zfs snapshot -r ${ZPOOL}@zfs-auto-snap_${qualifier}_`date +%Y-%m-%d:%H-%M-%S`
+rc=$?
+
+# Log result
+logger `basename $0` - $qualifier:complete[$rc]
+
+##
+## EOF
+##

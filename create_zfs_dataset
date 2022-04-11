@@ -1,0 +1,59 @@
+#!/bin/bash
+# create_zfs_dataset
+# Create a new ZFS dataset with the proper options.
+# (c) David Cook
+#
+# Takes the name of the new filesystem as a comand line parm.
+#
+# Call this from cron as follows to create 15 minute, hourly,
+# daily, weekly, montly and annual snapshots.
+#  # Create ZFS snapshots
+#  */15 * * * * /root/scripts/ZFS/make_snapshot freq >/dev/null 2>&1
+#  0 * * * * /root/scripts/ZFS/make_snapshot Pool0 hour >/dev/null 2>&1
+#  0 0 * * * /root/scripts/ZFS/make_snapshot Pool0 day >/dev/null 2>&1
+#  0 0 * * 0 /root/scripts/ZFS/make_snapshot Pool0 week >/dev/null 2>&1
+#  0 0 1 * 0 /root/scripts/ZFS/make_snapshot Pool0 month >/dev/null 2>&1
+#  0 0 1 1 * /root/scripts/ZFS/make_snapshot Pool0 year >/dev/null 2>&1
+#
+# A separate program will be run to prune (delete) old snapshots.
+#
+
+# Check if I got a cmd line parm
+if [ ${#1} -eq 0 ]; then
+   echo "Usage: ${0} [zfs dataset name]"
+   echo ""
+   echo "No dataset name provided. Exiting ..."
+   exit 99
+fi
+
+
+
+#
+# Check that $1 doesn't already exist as a ZFS dataset, file or directory.
+if [ `zfs list | grep ${1} | wc -l` -gt 0 ]; then
+   echo "This ZFS dataset already exists. Exiting ..."
+   exit 98
+else
+   echo "Doesn't already exist as ZFS dataset"
+   if [ -f "/mnt/${1}" ] || [ -d "/mnt/${1}" ]; then
+      echo "File/Directory alredy exists. Exiting ..."
+      exit 97
+   fi
+fi
+
+
+#
+# Create the dataset
+zfs create ${1}
+zfs set compression=lz4 ${1} 
+zfs set atime=off ${1}
+zfs set xattr=sa ${1}
+zfs set acltype=posixacl ${1}
+zfs set dedup=off ${1}
+zfs set sync=disabled ${1}
+zfs set relatime=off ${1}
+
+#
+# EOF
+#
+

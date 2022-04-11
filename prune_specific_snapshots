@@ -1,0 +1,104 @@
+#!/bin/bash
+# prune_snapshots
+# David Cook, 2016
+#
+# Prune extra snapshots. Only keep a fixed number around.
+# Frequent (15-min) :: keep  96 (1 day)
+# Hourly            :: keep 168 (1 week)
+# Daily             :: keep  90 (3 months)
+# Weekly            :: keep  52 (1 year)
+# Monthly           :: keep  24 (2 years)
+# Annual            :: keep  10 (10 years)
+
+# Define constants
+type=""
+totrc=0
+logger `basename $0`" - Starting $1 option"
+
+# Do case insensitive matching
+shopt -s nocasematch
+[[ "$1" == "Frequent" ]] && type="frequent" && keep=96
+[[ "$1" == "Hourly" ]] && type="hourly" && keep=168
+[[ "$1" == "Daily" ]] && type="daily" && keep=90
+[[ "$1" == "Weekly" ]] && type="weekly" && keep=52
+[[ "$1" == "Monthly" ]] && type="monthly" && keep=12
+[[ "$1" == "Annual" ]] && type="annual" && keep=5
+
+
+# If no type set, display usage
+if [ "$type" == "" ]; then
+   echo "Prune old ZFS snapshot images."
+   echo "Usage: prune_snapshots <type>"
+   echo "       Where type is Frequent|Hourly|Daily|Weekly|Monthly|Annual."
+   logger `basename $0`" - Exiting bad cmd line parms"
+   exit 9
+fi
+
+
+# Get list of ZFS datasets
+zfsDSlist=$(/sbin/zfs list -o name | /bin/sed -e "1d")
+
+zfsDSlist="Pool0/usershares"
+
+# Loop through list of datasets
+for x in $zfsDSlist
+do
+   echo "Snapshots for $x:"
+   logger `basename $0`" - Pool $x"
+   # Get list of snapshots for this TYPE in reverse order in preparation
+   # for doing a "tail #" deletion on the list later.
+   # grep includes - ^ to pin to start of line
+   #               - $x for the variable
+   #               - @ as the separator (and next literal on the line)
+   snaplist=$(/sbin/zfs list -t snapshot -o name | grep ^$x@ | grep $type | /usr/bin/tac)
+
+
+   # Count how many we have and compare to how many of this TYPE we are
+   # supposed to keep.
+   if [ ${#snaplist} -eq 0 ]; then
+      cur_list=0
+   else
+      cur_list=$(echo "${snaplist}" | wc -l)
+   fi
+
+
+#   if [ "$cur_list" -le "$keep" ]; then
+#      echo "Only $cur_list $type snapshots, want to keep $keep. Moving on ..."
+#      logger `basename $0`" - $cur_list $type snaps, keeping $keep."
+
+#   else
+      # Perform the deletion of excess lines here.
+      tmp=$(($keep + 1))
+echo "$snaplist"
+      echo "$snaplist" | /usr/bin/xargs -n 1 /sbin/zfs destroy
+      rc=$?
+
+      # Accumulate Return Codes
+      totrc=$(($totrc + $rc))
+
+      if [ $rc -eq 0 ]; then
+         logger `basename $0`" - $x zfs destroy SUCCESS"
+      else
+         logger `basename $0`" - $x zfs destroy FAIL"
+      fi
+      echo "Keeping $keep snaps, rc $rc"
+
+#   fi
+
+   echo ""
+done
+
+if [ $totrc -eq 0 ]; then
+   logger `basename $0`" - Exiting SUCCESS"
+else
+   logger `basename $0`" - Some zfs ops FAILED"
+fi
+
+# Calculate runtime
+duration=$SECONDS
+logger `basename $0`" - running $(($duration / 60)) minutes and $(($duration % 60)) seconds."
+
+##
+## EOF
+##
+

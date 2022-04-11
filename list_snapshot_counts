@@ -1,0 +1,171 @@
+#!/bin/bash
+# list_snapshot_counts
+# David Cook, 2016
+#
+# Lists table of available ZFS snapshots based on our custom naming
+# scheme.
+#
+# Example of the ZFS snapshot file naming structure:
+# Pool0/usershares@zfs-auto-snap_frequent_2016-05-03:16-15-01
+#  Pool0          :: zpool name (zfs convention)
+#  usershares     :: zfs dataset name (zfs convention)
+#  @              :: field separator (zfs convention)
+#  zfs-auto-snap  :: base name (our naming convention)
+#  frequent       :: frequency (frequent|hourly|daily|weekly|monthly|annual)
+#  2016-05-03     :: date (our naming convention)
+#  :              :: separator (our naming convention)
+#  16-15-01       :: time 4:15:01PM (our naming convention)
+#
+
+
+# Functions
+function linebreak {
+  printf "=========================================================================\n"
+}
+
+function header {
+  echo ""
+  echo "ZFS Snapshot list"
+  printf "%3s %-20s\t%6s %6s %6s %6s %6s %6s\n" "#" "Dataset" "15Min" "Hourly" "Daily" "Weekly" "Mthly" "Annual"
+  linebreak
+  return
+}
+
+#
+# MAIN
+#
+declare -a snap_freq
+declare -a snap_hour
+declare -a snap_day
+declare -a snap_week
+declare -a snap_month
+declare -a snap_annual
+
+actCounter=0
+actFlag=0
+screenstatus=1
+
+# Get list of ZFS datasets
+zfsDSlist=($(zfs list -o name | sed -e "1d"))
+
+
+# Get the list of ZFS snapshots
+snaplist=($(zfs list -t snapshot -o name ))
+
+
+# Initialize counter array zero values
+count=0
+for myDS in ${zfsDSlist[@]}
+do
+   # echo $myDS
+   snap_freq[$count]=0
+   snap_hour[$count]=0
+   snap_day[$count]=0
+   snap_week[$count]=0
+   snap_month[$count]=0
+   snap_annual[$count]=0
+   ((count++))
+done
+
+
+#
+# Loop through the Dataset list and compare against the snapshot list
+count=0
+
+#
+# Loop through the datasets
+for myDS in ${zfsDSlist[@]}
+   do
+
+   # Temporarily change the Field Separator (FS) in order to output
+   # individual lines from the array elements so they can be
+   # counted/processed.
+   OFS=$IFS
+   IFS=$'\n'
+
+   # Count the line types
+   snap_freq[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/frequent/p' | wc -l`
+   snap_hour[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/hourly/p' | wc -l`
+   snap_day[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/daily/p' | wc -l`
+   snap_week[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/weekly/p' | wc -l`
+   snap_month[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/monthly/p' | wc -l`
+   snap_annual[${count}]=`echo "${snaplist[*]}"  | grep ^$myDS@ | sed -n '/annual/p' | wc -l`
+
+   # Reset the FS and increment the counter
+   IFS=$OFS
+   ((count++))
+
+
+   #
+   # Indicate we are working 
+   if [ $screenstatus -ne 0 ]; then
+      ((actCounter++))
+      [ $actFlag -eq 0 ] && mychar="*"
+      [ $actFlag -eq 1 ] && mychar="+"
+      printf "%s" "$mychar"
+      if [ $actCounter -gt 40 ]; then
+         if [ $actFlag -eq 0 ]; then
+            actFlag=1
+         else
+            actFlag=0
+         fi
+         actCounter=0
+         printf "\r"
+      fi
+   fi
+
+done
+
+
+# Output to screen
+# First, clean the activity output
+printf "\r %50s" " "
+
+# Print header
+header
+
+# Initialize variables
+dsNO=0
+snap_freq_total=0
+snap_hour_total=0
+snap_day_total=0
+snap_week_total=0
+snap_month_total=0
+snap_annual_total=0
+snap_grand_total=0
+
+#
+# Loop through output routine
+for myDS in ${zfsDSlist[@]}
+do
+  printf "%3d %-20s\t%6d %6d %6d %6d %6d %6d\n" "$dsNO" "$myDS" "${snap_freq[$dsNO]}" "${snap_hour[$dsNO]}" "${snap_day[$dsNO]}" "${snap_week[$dsNO]}" "${snap_month[$dsNO]}" "${snap_annual[$dsNO]}"
+
+  #
+  # Cumulate totals
+  (( snap_freq_total   += ${snap_freq[$dsNO]} ))
+  (( snap_hour_total   += ${snap_hour[$dsNO]} ))
+  (( snap_day_total    += ${snap_day[$dsNO]} ))
+  (( snap_week_total   += ${snap_week[$dsNO]} ))
+  (( snap_month_total  += ${snap_month[$dsNO]} ))
+  (( snap_annual_total += ${snap_annual[$dsNO]} ))
+
+  #
+  # increment counter
+  ((dsNO++))
+done
+
+#
+# And totals
+linebreak
+printf "\t\t\t\t%6d %6d %6d %6d %6d %6d\n" "$snap_freq_total" "$snap_hour_total" "$snap_day_total" "$snap_week_total" "$snap_month_total" "$snap_annual_total"
+
+snap_grand_total=$((snap_freq_total+snap_hour_total+snap_day_total+snap_week_total+snap_month_total+snap_annual_total))
+linebreak
+printf "\tGrand Total\t\t%6d\n" "$snap_grand_total"
+
+
+##
+## EOF
+##
+
+
