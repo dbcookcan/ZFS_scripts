@@ -1,0 +1,15 @@
+# Create ZFS snapshots
+*/15 * * * * /root/scripts/ZFS_scripts/make_snapshot freq >/dev/null 2>&1
+0 * * * * /root/scripts/ZFS_scripts/make_snapshot Pool0 hour >/dev/null 2>&1
+0 0 * * * /root/scripts/ZFS_scripts/make_snapshot Pool0 day >/dev/null 2>&1
+0 0 * * 0 /root/scripts/ZFS_scripts/make_snapshot Pool0 week >/dev/null 2>&1
+0 0 1 * 0 /root/scripts/ZFS_scripts/make_snapshot Pool0 month >/dev/null 2>&1
+0 0 1 1 * /root/scripts/ZFS_scripts/make_snapshot Pool0 year >/dev/null 2>&1
+
+# Cleanup old ZFS snapshots
+45 18 * * * /root/scripts/ZFS_scripts/prune_snapshots frequent
+35 16 * * * /root/scripts/ZFS_scripts/prune_snapshots hourly
+35 14 * * * /root/scripts/ZFS_scripts/prune_snapshots daily
+35 12 * * 1 /root/scripts/ZFS_scripts/prune_snapshots weekly
+35 10 1 * * /root/scripts/ZFS_scripts/prune_snapshots monthly
+35 1 1 1 * /root/scripts/ZFS_scripts/prune_snapshots annual
