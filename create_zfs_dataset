@@ -5,18 +5,6 @@
 #
 # Takes the name of the new filesystem as a comand line parm.
 #
-# Call this from cron as follows to create 15 minute, hourly,
-# daily, weekly, montly and annual snapshots.
-#  # Create ZFS snapshots
-#  */15 * * * * /root/scripts/ZFS/make_snapshot freq >/dev/null 2>&1
-#  0 * * * * /root/scripts/ZFS/make_snapshot Pool0 hour >/dev/null 2>&1
-#  0 0 * * * /root/scripts/ZFS/make_snapshot Pool0 day >/dev/null 2>&1
-#  0 0 * * 0 /root/scripts/ZFS/make_snapshot Pool0 week >/dev/null 2>&1
-#  0 0 1 * 0 /root/scripts/ZFS/make_snapshot Pool0 month >/dev/null 2>&1
-#  0 0 1 1 * /root/scripts/ZFS/make_snapshot Pool0 year >/dev/null 2>&1
-#
-# A separate program will be run to prune (delete) old snapshots.
-#
 
 # Check if I got a cmd line parm
 if [ ${#1} -eq 0 ]; then
