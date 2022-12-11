@@ -45,13 +45,11 @@ fi
 #
 # Create the dataset
 zfs create ${1}
-zfs set compression=lz4 ${1} 
-zfs set atime=off ${1}
+zfs set special_small_blocks=16k ${1}
+zfs set compression=zstd ${1}
 zfs set xattr=sa ${1}
-zfs set acltype=posixacl ${1}
-zfs set dedup=off ${1}
-zfs set sync=disabled ${1}
-zfs set relatime=off ${1}
+zfs set aclinherit=passthrough ${1} 
+
 
 #
 # EOF
