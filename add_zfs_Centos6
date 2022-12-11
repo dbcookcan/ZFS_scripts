@@ -1,0 +1,52 @@
+#!/bin/bash
+# add_zfs_Centos6
+# Adds zfs functions to a CentOS 6 install
+# David Cook, 2016
+#
+
+# Add ZFS support on CentOS 6
+# You must reboot the system after this has completed
+#
+err=0
+
+# Ensure we are root
+[ $EUID -ne 0 ] && echo "You must be root to run this script ...." && exit 9
+
+# Check if zfs is already installed
+iszfs=$(lsmod | grep zfs | wc -l)
+[ $iszfs -ne 0 ] && echo "ZFS is already installed here." && exit 8
+
+
+exit
+
+# Add the epel repository
+yum localinstall --nogpgcheck http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm -y
+err=$((err+$?))
+if [ $err -eq 0 ]; then
+
+   # Add zfs release set to the system
+   yum localinstall --nogpgcheck http://archive.zfsonlinux.org/epel/zfs-release.el6.noarch.rpm -y
+   err=$((err+$?))
+fi
+if [ $err -eq 0 ]; then
+
+   # Add ZFS to the system
+   yum install kernel-devel zfs -y
+   err=$((err+$?))
+fi
+
+if [ $err -eq 0 ]; then
+   echo "Installation successful. You must reboot the system now to take effect."
+else
+   echo ""
+   echo "  ******************************************"
+   echo "  ******************************************"
+   echo "  ** There were errors. Please address !! **"
+   echo "  ******************************************"
+   echo "  ******************************************"
+   echo ""
+fi
+
+##
+## EOF
+##
