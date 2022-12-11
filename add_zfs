@@ -1,5 +1,5 @@
 #!/bin/bash
-# add_zfs
+# add_zfs_Centos6
 # Adds zfs functions to a CentOS 6 install
 # David Cook, 2016
 #
