@@ -1,5 +1,5 @@
 #!/bin/bash
-# make_snapshot_frequent
+# make_snapshot
 # David Cook, 2016
 #
 # Make snapshots of your ZFS datasets using the format
