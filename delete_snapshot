@@ -1,0 +1,54 @@
+#!/bin/bash
+# delete_snapshot
+# David Cook, 2023
+#
+
+
+DEBUG=0
+FOUND=0
+
+# Check if I got a cmd line parm
+if [ ${#1} -eq 0 ]; then
+   echo "Usage: ${0} [zfs snapshot name]"
+   echo ""
+   echo "No snapshot name provided. Exiting ..."
+   exit 99
+else
+   echo "Looking for snapshot $1"
+fi
+
+# Get list of valid snapshots
+snaplist=$(zfs list -t snapshot -o name)
+
+
+# Loop through the available snapshots to look for a match
+for snap in ${snaplist[@]};
+do
+
+  # Check for a match
+  if [ "$snap" = "$1" ]; then
+
+     # Found, increment the counter and break out loop
+     ((FOUND=FOUND+1))
+     break
+  fi
+done
+
+
+if [ $FOUND -eq 0 ]; then
+	echo "Could not find snapshot."
+	exit 1
+else
+   echo "$1" | /usr/bin/xargs -n 1 zfs destroy
+   rc=$?
+   if [ $rc -eq 0 ]; then
+      echo "Snapshot deleted sucessfully"
+   fi
+
+fi
+
+
+#
+# EOF
+#
+

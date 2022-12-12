@@ -48,7 +48,7 @@ fi
 
 
 # Get list of ZFS datasets
-zfsDSlist=$(/sbin/zfs list -o name | /bin/sed -e "1d")
+zfsDSlist=$(zfs list -o name | /bin/sed -e "1d")
 
 # Loop through list of datasets
 for x in $zfsDSlist
@@ -60,7 +60,7 @@ do
    # grep includes - ^ to pin to start of line
    #               - $x for the variable
    #               - @ as the separator (and next literal on the line)
-   snaplist=$(/sbin/zfs list -t snapshot -o name | grep ^$x@ | grep $type | /usr/bin/tac)
+   snaplist=$(zfs list -t snapshot -o name | grep ^$x@ | grep $type | /usr/bin/tac)
 
 
    # Count how many we have and compare to how many of this TYPE we are
@@ -79,7 +79,7 @@ do
    else
       # Perform the deletion of excess lines here.
       tmp=$(($keep + 1))
-      echo "$snaplist" | tail -n +$tmp | /usr/bin/xargs -n 1 /sbin/zfs destroy
+      echo "$snaplist" | tail -n +$tmp | /usr/bin/xargs -n 1 zfs destroy
       rc=$?
 
       # Accumulate Return Codes

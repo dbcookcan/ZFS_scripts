@@ -1,0 +1,10 @@
+#!/bin/sh
+# list_my_snapshots
+# David Cook, 2023
+#
+
+zfs list -t snapshot -o name
+
+#
+# EOF
+#

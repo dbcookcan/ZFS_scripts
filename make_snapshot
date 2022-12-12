@@ -45,7 +45,7 @@ qualifier=""
 logger `basename $0` - $qualifier:start
 
 # Create snapshot
-/sbin/zfs snapshot -r ${ZPOOL}@zfs-auto-snap_${qualifier}_`date +%Y-%m-%d:%H-%M-%S`
+zfs snapshot -r ${ZPOOL}@zfs-auto-snap_${qualifier}_`date +%Y-%m-%d:%H-%M-%S`
 rc=$?
 
 # Log result
