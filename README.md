@@ -15,13 +15,13 @@ Creation & Management of Snapshots
  FS Snapshot list
   # Dataset             	 15Min Hourly  Daily Weekly  Mthly Annual
  ========================================================================
-  0 Pool0               	     5      1      0      0      0      0
-  1 Pool0/HOME          	     5      1      0      0      0      0
-  2 Pool0/SHARED        	     5      1      0      0      0      0
-  3 Pool0/VM_DS_01      	     5      1      0      0      0      0
-  4 Pool0/VM_DS_02      	     5      1      0      0      0      0
-  5 Pool0/VM_ISO        	     5      1      0      0      0      0
-  6 sandbox1            	     5      1      0      0      0      0
+  0 Prod0               	     5      1      0      0      0      0
+  1 Prod0/HOMEDIRS          	     5      1      0      0      0      0
+  2 Prodd/GROUPSHARES        	     5      1      0      0      0      0
+  3 Prod0/ESXi_DS_01      	     5      1      0      0      0      0
+  4 Prod0/ESXi_DS_02      	     5      1      0      0      0      0
+  5 Prod0/ESXi_ISO        	     5      1      0      0      0      0
+  6 Sandbox0            	     5      1      0      0      0      0
  ========================================================================
 				    35      7      0      0      0      0
  ========================================================================
