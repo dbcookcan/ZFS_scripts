@@ -2,7 +2,6 @@
 # Initiated: 2022-04-11
 
 ZFS Filesystem & Snapshot management
-
 Creation & Management of Snapshots
  -  Frequent (15-min) :: keep  96 (1 day)
  -  Hourly            :: keep 168 (1 week)
@@ -11,8 +10,10 @@ Creation & Management of Snapshots
  -  Monthly           :: keep  24 (2 years)
  -  Annual            :: keep  10 (10 years)
 
+Self enumerates your zfs datasets and snapshots them all on a schedule. All snapshots are date-stamped within the filename for easy finding. Programs provided for automatically purging old, listing available, and manual deletions.
+
 ```
- FS Snapshot list
+ ZFS Snapshot list
   # Dataset             	 15Min Hourly  Daily Weekly  Mthly Annual
  ========================================================================
   0 Prod0               	     5      1      0      0      0      0
